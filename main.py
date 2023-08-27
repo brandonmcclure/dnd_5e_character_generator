@@ -5,6 +5,7 @@ from textwrap import wrap
 from dnd_char import character
 from dnd_world import World
 from time import sleep
+import json
 
 # functions
 def clear(): print('\033[H\033[J', end="")
@@ -51,10 +52,16 @@ def save_char(c, char_made, has_saved):
         return True
     else: 
         file_name = f"{c.p_race} {c.p_class} - {c.p_name}.txt"
+        json_file_name = f"{c.p_race} {c.p_class} - {c.p_name}.json"
+        json_save_path = f"./characters/{json_file_name}"
         savepath  = "./characters/" + file_name
         current   = "./current_character.txt"
         files     = [savepath, current]
         
+        file = open(json_save_path, 'w')
+        file.write(print_json(c))
+        file.close()
+
         for a_file in files:
             file = open(a_file, 'w')
             file.write(print_desc(c))
@@ -110,6 +117,8 @@ def format_desc(c):
       
     return [res, weapon, grammar]
 
+def print_json(c):
+    return json.dumps(c.__dict__, indent=4)
 def print_desc(c):
     "Display a brief, cleanly-formatted description of generated character"
     formatted = format_desc(c)
