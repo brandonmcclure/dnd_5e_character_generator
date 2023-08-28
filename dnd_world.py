@@ -22,8 +22,17 @@ configuration = openapi_client.Configuration(
 )
 all_races = []
 gradio_ui_elements = {}
-def load_rest_data():
-    if len(all_races) ==0 :
+args_active = {
+    'gradio': False,
+    'bind_port': 8000,
+    'possible_races': [],
+    'player_name': 'New Player',
+    'selected_race': {},
+}
+def populate_possible_races():
+    if len(args_active['possible_races']) != 0:
+        return
+    if len(args_active['possible_races']) == 0 :
         print('Loading data from API')
         for _race in World.RACES.value:
             print(f'Trying to get data for the {_race}')
@@ -37,11 +46,12 @@ def load_rest_data():
                     api_response = api_instance.api_races_index_get(_race)
                     # print("The response of RacesApi->api_races_index_get:\n")
                     # pprint(api_response)
-                    all_races.append(api_response)
+                    args_active['possible_races'].append(api_response)
                 except Exception as e:
                     print("Exception when calling RacesApi->api_races_index_get: %s\n" % e)
-        print('done')
-        pprint(all_races)
+            pprint(args_active['possible_races'])
+        return
+
 class World(Enum):
     RACES = ["dwarf", "elf", "halfling", "human", "dragonborn", "gnome", \
         "half-elf", "half-orc", "tiefling"]

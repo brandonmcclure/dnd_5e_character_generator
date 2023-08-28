@@ -3,11 +3,13 @@
 # imports
 from configparser import ConfigParser
 from copy import deepcopy as dc
-from dnd_world import World
+from dnd_world import World, args_active, gradio_ui_elements
 import ran_gen
 import random
 import die
 import json
+from markdown.extensions.tables import TableExtension
+from markdown import markdown
 from textwrap import wrap
 
 # functions
@@ -64,6 +66,7 @@ class character:
     def __init__(self):
         # character traits
         self.race      = ran_gen.rrace()
+        self.player = {'name': args_active['player_name'] }
         self.p_class     = ran_gen.rclass()
         self.p_alig_val  = [die.rolld(3), die.rolld(3)]
         self.p_alignment = get_alig(self.p_alig_val)
@@ -90,6 +93,21 @@ class character:
     def toJSON(self):
         return json.dumps(self, default=lambda o: o.__dict__, 
             sort_keys=True, indent=4)
+    def toMarkdown(self):
+        formatted = self.format_desc()
+        stats = formatted[0]
+        weapon = formatted[1]
+        
+        return_string = '''
+        # {s.p_fname}
+
+        This person is  {s.race.name} {s.p_class} whose name is {s.name}.
+        {s.p_fname} is {s.p_alignment}, {s.p_age} years old, and has a net worth of {s.p_net_worth}
+
+        {s.p_fname} is wearing {s.p_clothing}, and {s.p_wea_desc}. 
+        {s.p_fname} is wielding .
+        '''.format(s=self)
+        return return_string
     def format_desc(self):
         "Extra formatting for descriptions"
         stats = [self.str, self.dex, self.con, self.wis, self.int, self.cha]
@@ -116,6 +134,7 @@ class character:
         return [res, weapon, grammar]
     def print_desc(self):
         "Display a brief, cleanly-formatted description of generated character"
+        
         formatted = self.format_desc()
         stats = formatted[0]
         weapon = formatted[1]
@@ -127,7 +146,6 @@ class character:
         breaker = "".center(80, '-')
         appearance = f"{self.p_fname} is wearing {self.p_clothing}, and {self.p_wea_desc}"
         armed = f"{self.p_fname} is wielding {weapon}."
-        
         desc_dict = {
             "   Description: ": desc,
             "   Appearance : ": appearance,

@@ -7,7 +7,7 @@ from dnd_world import World
 import random
 import die
 import re
-from dnd_world import World, all_races, load_rest_data
+from dnd_world import World, populate_possible_races, args_active, gradio_ui_elements
 import pprint
 
 # functions
@@ -31,8 +31,14 @@ def rname(r, pos):
     return re.sub("\n", "", random.choice(names))
 
 def rrace(): 
-    load_rest_data()
-    randoChoice = random.choice(all_races)
+
+    populate_possible_races()
+    if isinstance(gradio_ui_elements['selected_race'].value, type(None)):
+        randoChoice = random.choice(args_active['possible_races'])
+    else:
+        for x in args_active['possible_races']:
+            if x.name.lower() == gradio_ui_elements['selected_race'].value.lower():
+                randoChoice = x
     return randoChoice
 def rclass(): return random.choice(World.CLASSES.value)
 def ralignment(): return random.choices(World.ALIG.value)

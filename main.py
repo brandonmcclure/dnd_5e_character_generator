@@ -2,7 +2,7 @@
 
 # imports
 from dnd_char import character
-from dnd_world import World, all_races, gradio_ui_elements
+from dnd_world import World, all_races, gradio_ui_elements, args_active, populate_possible_races
 from time import sleep
 import argparse
 import json
@@ -91,27 +91,31 @@ def make_ran_character():
     new = character()
     print("- - - - GENERATED RANDOM CHARACTER - - - -".center(80, ' '))
     print(f"{new.print_desc()}\n")
-    return new.print_desc(),new.toJSON()
+    return new.toMarkdown(),new.toJSON()
 
 
 
 
-args_active = {
-    'gradio': False,
-    'bind_port': 8000,
-}
+
 def parse_arguments():
     parser = argparse.ArgumentParser(description='DnD 5e Character Generator')
     parser.add_argument("--gradio", action='store_true',
                         help='Use this flag to run a gradio interface')
     parser.add_argument("--bind_port", default=8000,
                         help='Which port to run on')
+    parser.add_argument("--player_name", default='New Player',
+                        help='What player the character is for')
     return parser.parse_args()
 parse_arguments()
 args_cmdline = parse_arguments()
 args_active.update({"gradio": args_cmdline.gradio})
 args_active.update({"bind_port": args_cmdline.bind_port})
+args_active.update({"player_name": args_cmdline.player_name})
 
+populate_possible_races()
+race_choices = [o.name for o in args_active['possible_races']]
+
+print(race_choices)
 if args_active['gradio']:
     with gr.Blocks(analytics_enabled=False) as grBlock:
         gr_qa = gr.State([])
@@ -126,14 +130,19 @@ if args_active['gradio']:
             """)
         with gr.Tab("Chat"):
             with gr.Row():
+                gradio_ui_elements['selected_race'] = gr.Dropdown(label='Selected race',choices=race_choices)
                 gradio_ui_elements['button_generate_random'] = gr.Button('Generate Random')
                 gradio_ui_elements['character_markdown'] = gr.Markdown(label="Character as JSON")
                 gradio_ui_elements['character_json'] = gr.Textbox(label="Character as JSON")
         with gr.Tab("Settings"):
             with gr.Row():
                 gradio_ui_elements['bind_port'] = gr.Textbox(label="The port to bind to",value=args_active['bind_port'])
+                gradio_ui_elements['player_name'] = gr.Textbox(label="The player name for the character",value=args_active['player_name'])
+                
 
         gradio_ui_elements['button_generate_random'].click(fn=make_ran_character, inputs=[], outputs=[gradio_ui_elements['character_markdown'],gradio_ui_elements['character_json']])
+        gradio_ui_elements['player_name'].change(lambda x: args_active.update({"player_name": x}), gradio_ui_elements['player_name'], None)
+        gradio_ui_elements['selected_race'].change(lambda x: args_active.update({"selected_race": x}), gradio_ui_elements['selected_race'], None)
         # gradio_ui_elements['instruct_prompt_template'].change(lambda x: params.update({"instruct_prompt_template": x}), gradio_ui_elements['instruct_prompt_template'], None)
         
 
