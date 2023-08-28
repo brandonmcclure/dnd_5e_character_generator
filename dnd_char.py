@@ -7,6 +7,7 @@ from dnd_world import World
 import ran_gen
 import random
 import die
+import json
 
 # functions
 def stat_gen(): 
@@ -61,16 +62,16 @@ class character:
     
     def __init__(self):
         # character traits
-        self.p_race      = ran_gen.rrace()
+        self.race      = ran_gen.rrace()
         self.p_class     = ran_gen.rclass()
         self.p_alig_val  = [die.rolld(3), die.rolld(3)]
         self.p_alignment = get_alig(self.p_alig_val)
         
         # attributes
         self.p_age       = self.smart_age()
-        self.p_fname     = ran_gen.rname(self.p_race, "First")
-        self.p_lname     = ran_gen.rname(self.p_race, "Last")
-        self.p_name      = self.p_fname + " " + self.p_lname
+        self.p_fname     = ran_gen.rname(self.race.name, "First")
+        self.p_lname     = ran_gen.rname(self.race.name, "Last")
+        self.name      = self.p_fname + " " + self.p_lname
         
         # financial & vanity
         self.p_net_worth = ran_gen.rwealth()
@@ -85,18 +86,20 @@ class character:
         self.wis = stat_gen()
         self.int = stat_gen()
         self.cha = stat_gen()
-        
+    def toJSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__, 
+            sort_keys=True, indent=4)
     def logical_stereotype(self, *r):
         """Normalize stereotypical alignment & class based on 5th ed. PHB"""
-        if len(r) > 0: self.p_race = r[0]
-        if self.p_race != "Human":
-            pot_aligns = get_class_ster_nums(self.p_race, "pot_aligns", 1, \
+        if len(r) > 0: self.race.name = r[0]
+        if self.race.name != "Human":
+            pot_aligns = get_class_ster_nums(self.race.name, "pot_aligns", 1, \
                         True)
-            pot_alig_nums = get_class_ster_nums(self.p_race, "pot_alig_nums", \
+            pot_alig_nums = get_class_ster_nums(self.race.name, "pot_alig_nums", \
                         2, True)
-            class_nums = get_class_ster_nums(self.p_race, "class_nums", 1, \
+            class_nums = get_class_ster_nums(self.race.name, "class_nums", 1, \
                         True)
-            pot_classes = get_class_ster_nums(self.p_race, "pot_classes", 1, \
+            pot_classes = get_class_ster_nums(self.race.name, "pot_classes", 1, \
                         False)
             
             ster_align = die.rolld(100)    # sterotypical alignment %
@@ -131,9 +134,9 @@ class character:
         aa = [17, 17, 17, 17, 15, 20, 17, 16, 17] # adulthood ages
         r_a_check = [.74, .88, .85, .85, .70, .82, .88, .79, .82] # age check
         alter_chance = [89, 89, 89, 89, 85, 89, 89, 82, 89] # age alter chance
-        
+        age = 1
         for i in range(len(World.RACES.value)):
-            if self.p_race == World.RACES.value[i]:
+            if self.race.name == World.RACES.value[i]:
                 age = die.rolld(maxa[i] - aa[i]) + aa[i]
                 if age >= int(r_a_check[i] * maxa[i]) and r < alter_chance[i]:
                     age = int(age * r_a_mod)
@@ -166,7 +169,7 @@ class character:
                     break
             
         for i in range(len(World.RACES.value)):
-            if self.p_race == World.RACES.value[i]:
+            if self.race.name == World.RACES.value[i]:
                 new_weath = int(new_wealth * w_mod[i])
                 break
         
