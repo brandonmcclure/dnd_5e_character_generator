@@ -7,16 +7,22 @@ from dnd_world import World
 import random
 import die
 import re
+from dnd_world import World, all_races, load_rest_data
+import pprint
 
 # functions
 def rname(r, pos):
+    print(f'r: {r.lower()}')
     "Pull a random first name from a text file based on race"
     if pos == "First": f_or_l = "f"
     else: f_or_l = "l"
     
     for i in range(len(World.RACES.value)):
-        if r == World.RACES.value[i]:
+        print(f'i: {i}')
+        print(f'World.RACES.value[i]: {World.RACES.value[i]}')
+        if r.lower() == World.RACES.value[i]:
             path = f"names/{World.R_SH.value[i]}_{f_or_l}names.txt"
+            print(f'trying to open {path}')
             name = open(path, "r")
             break
     
@@ -24,7 +30,10 @@ def rname(r, pos):
     name.close()
     return re.sub("\n", "", random.choice(names))
 
-def rrace(): return random.choice(World.RACES.value)
+def rrace(): 
+    load_rest_data()
+    randoChoice = random.choice(all_races)
+    return randoChoice
 def rclass(): return random.choice(World.CLASSES.value)
 def ralignment(): return random.choices(World.ALIG.value)
 
