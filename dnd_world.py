@@ -21,6 +21,7 @@ configuration = openapi_client.Configuration(
     host = "https://www.dnd5eapi.co"
 )
 all_races = []
+gradio_ui_elements = {}
 def load_rest_data():
     if len(all_races) ==0 :
         print('Loading data from API')

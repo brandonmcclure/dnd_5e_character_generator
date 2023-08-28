@@ -8,6 +8,7 @@ import ran_gen
 import random
 import die
 import json
+from textwrap import wrap
 
 # functions
 def stat_gen(): 
@@ -89,6 +90,64 @@ class character:
     def toJSON(self):
         return json.dumps(self, default=lambda o: o.__dict__, 
             sort_keys=True, indent=4)
+    def format_desc(self):
+        "Extra formatting for descriptions"
+        stats = [self.str, self.dex, self.con, self.wis, self.int, self.cha]
+        form = []
+        ind = "                       "
+        
+        for stat in stats:
+            if stat < 10:
+                form.append(str(stat).rjust(2, ' '))
+            else:
+                form.append(stat)
+                
+        res = f" {ind}|     STR {form[0]}     WIS {form[3]}     |" \
+            f"\n {ind}|     DEX {form[1]}     INT {form[4]}     |" \
+            f"\n {ind}|     CON {form[2]}     CHA {form[5]}     |"
+        
+        if self.race.name == "Elf": grammar = "an"
+        else: grammar = "a"
+        
+        if "Dart" in self.p_weapon:
+            weapon = "a handful of darts"
+        else: weapon = "a " + self.p_weapon
+        
+        return [res, weapon, grammar]
+    def print_desc(self):
+        "Display a brief, cleanly-formatted description of generated character"
+        formatted = self.format_desc()
+        stats = formatted[0]
+        weapon = formatted[1]
+        return_list = []
+        char_id = f"This person is {formatted[2]} {self.race.name} {self.p_class} " \
+            f"whose name is {self.name}."
+        desc = f"{self.p_fname} is {self.p_alignment}, {self.p_age} years old, and " \
+            "has a net worth of {:,d} GP.".format(self.p_net_worth)
+        breaker = "".center(80, '-')
+        appearance = f"{self.p_fname} is wearing {self.p_clothing}, and {self.p_wea_desc}"
+        armed = f"{self.p_fname} is wielding {weapon}."
+        
+        desc_dict = {
+            "   Description: ": desc,
+            "   Appearance : ": appearance,
+            "   Wielding   : ": armed
+        }
+        
+        return_list.append("\n\n\n" + char_id.center(80, ' '))
+        return_list.append(f"{breaker}\n{stats}\n{breaker}\n")
+        for key, val in desc_dict.items():
+            wrapped = wrap(f"{key}{val}", 77)
+            return_list.append(wrapped[0])
+            if len(wrapped) > 0:
+                for i in range(len(wrapped)-1):
+                    return_list.append("".ljust(len(key), ' ') + wrapped[i+1])
+            return_list[-1] += "\n"
+        
+        return_string = ""
+        for line in return_list:
+            return_string += (line + "\n")
+        return(return_string)
     def logical_stereotype(self, *r):
         """Normalize stereotypical alignment & class based on 5th ed. PHB"""
         if len(r) > 0: self.race.name = r[0]
